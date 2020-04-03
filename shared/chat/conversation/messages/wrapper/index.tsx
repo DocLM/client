@@ -138,6 +138,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       <Kb.Box2
         key="orangeLine"
         direction="vertical"
+        data-key="last-unread"
         style={Styles.collapseStyles([
           styles.orangeLine,
           !this.props.showUsername && styles.orangeLineCompensationLeft,
