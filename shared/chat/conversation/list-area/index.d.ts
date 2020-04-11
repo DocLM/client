@@ -12,6 +12,7 @@ export type Props = {
   lastMessageIsOurs: boolean
   loadNewerMessages: (ordinal?: Types.Ordinal | null) => void
   loadOlderMessages: (ordinal?: Types.Ordinal | null) => void
+  loadLastUnread: () => void
   markInitiallyLoadedThreadAsRead: () => void
   messageOrdinals: Array<Types.Ordinal>
   onFocusInput: () => void

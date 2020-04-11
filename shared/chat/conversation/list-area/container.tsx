@@ -28,9 +28,19 @@ const throttledLoadOlder = throttle(
   1000
 )
 
+const throttledJumpToUnread = throttle(
+  (dispatch: Container.TypedDispatch, conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID) => {
+    dispatch(Chat2Gen.createLoadMessagesCentered({conversationIDKey, highlightMode: 'flash', messageID}))
+  },
+  1000
+)
+
 export default Container.connect(
   (state, {conversationIDKey}: OwnProps) => {
     const messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
+    const {metaMap} = state.chat2
+    const readMsgID = metaMap.get(conversationIDKey)?.readMsgID
+    const maxVisibleMsgID = metaMap.get(conversationIDKey)?.maxVisibleMsgID
     const lastOrdinal = [...messageOrdinals].pop()
     const maybeCenterMessage = Constants.getMessageCenterOrdinal(state, conversationIDKey)
     const centeredOrdinal =
@@ -46,6 +56,8 @@ export default Container.connect(
       centeredOrdinal,
       containsLatestMessage,
       conversationIDKey,
+      readMsgID,
+      maxVisibleMsgID,
       editingOrdinal: state.chat2.editingMap.get(conversationIDKey),
       lastMessageIsOurs,
       messageOrdinals,
@@ -55,6 +67,7 @@ export default Container.connect(
     copyToClipboard: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
     loadNewerMessages: () => throttledLoadNewer(dispatch, conversationIDKey),
     loadOlderMessages: () => throttledLoadOlder(dispatch, conversationIDKey),
+    loadLastUnread: (lastUnreadId: Types.MessageID) => throttledJumpToUnread(dispatch, conversationIDKey, lastUnreadId),
     markInitiallyLoadedThreadAsRead: () =>
       dispatch(Chat2Gen.createMarkInitiallyLoadedThreadAsRead({conversationIDKey})),
     onJumpToRecent: () => dispatch(Chat2Gen.createJumpToRecent({conversationIDKey})),
@@ -68,6 +81,12 @@ export default Container.connect(
     lastMessageIsOurs: stateProps.lastMessageIsOurs,
     loadNewerMessages: dispatchProps.loadNewerMessages,
     loadOlderMessages: dispatchProps.loadOlderMessages,
+    loadLastUnread: () => {
+      const readMsgID = stateProps?.readMsgID ? stateProps.readMsgID : 0
+      const maxVisibleMsgID = stateProps?.maxVisibleMsgID ? stateProps.maxVisibleMsgID : 0
+      if(maxVisibleMsgID >= readMsgID)
+        return dispatchProps.loadLastUnread(readMsgID)
+    },
     markInitiallyLoadedThreadAsRead: dispatchProps.markInitiallyLoadedThreadAsRead,
     messageOrdinals: [...stateProps.messageOrdinals],
     onFocusInput: ownProps.onFocusInput,

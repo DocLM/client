@@ -142,20 +142,6 @@ class Thread extends React.PureComponent<Props, State> {
     }, 1)
   }
 
-  private scrollToUnread = (reason: string) => {
-    const list = this.listRef.current
-    if (list) {
-      this.logAll(list, `scrollToUnread(${reason})`, () => {
-        // grab the waypoint we made for the centered ordinal and scroll to it
-        const scrollWaypoint = list.querySelectorAll(`[data-key=last-unread]`)
-        if (scrollWaypoint.length > 0)
-          scrollWaypoint[0].scrollIntoView({block: 'center', inline: 'nearest'})
-        else
-          this.scrollToBottom('no-unread-messages')
-      })
-    }
-  }
-
   private scrollDown = () => {
     const list = this.listRef.current
     if (list) {
@@ -192,11 +178,11 @@ class Thread extends React.PureComponent<Props, State> {
       this.props.markInitiallyLoadedThreadAsRead()
     }
 
-    this.scrollToUnread('componentDidMount')
+    this.props.loadLastUnread()
 
-    //if (this.isLockedToBottom()) {
-    //  this.scrollToBottom('componentDidMount')
-    //}
+    if (this.isLockedToBottom()) {
+      this.scrollToBottom('componentDidMount')
+    }
   }
 
   getSnapshotBeforeUpdate(prevProps: Props) {
@@ -225,7 +211,7 @@ class Thread extends React.PureComponent<Props, State> {
     if (this.props.conversationIDKey !== prevProps.conversationIDKey) {
       this.cleanupDebounced()
       this.lockedToBottom = false
-      this.scrollToUnread('componentDidUpdate-change-convo')
+      this.props.loadLastUnread()
       return
     }
 
